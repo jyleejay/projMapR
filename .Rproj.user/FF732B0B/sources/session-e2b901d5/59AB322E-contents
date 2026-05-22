@@ -1,0 +1,18 @@
+dm_path <- "D:/dmrp_v1/prediction_R"
+app_path <- "D:/2025/modeling/dm_prediction/app"
+
+# 1. build_inventory()
+df_list <- build_inventory(target_dir = c(dm_path, app_path), include_ext = c("R", "xlsx"))
+
+# 2. scan_io()
+first_list <- scan_io(df_list$path[1])
+
+
+df_list |> names()
+
+list_tidy <- df_list |> 
+  dplyr::select(path, file_name, md5_hash, is_duplicate)
+
+# 3. export_project_map()
+
+export_project_map(c(app_path, dm_path))

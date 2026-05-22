@@ -1,0 +1,21 @@
+Package: projMapR
+Type: Package
+Title: Map Project File Structures and Data Lineage.
+Version: 0.1.0
+Author: [Jeongyoon Lee] <jeongyoonlee.jay@gmail.com>
+Maintainer: [Jeongyoon Lee] <jeongyoonlee.jay@gmail.com>
+Description: A lightweight utility designed to audit and document complex data projects.
+             It generates comprehensive file inventories, detects exact duplicates via MD5 harshing,
+             and performs static code analysis on R scripts to trace data import and export flows.
+             Results can be exported to multi-sheet Excel reports for easy collaboration.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    digest,
+    dplyr,
+    fs,
+    purrr,
+    stringr,
+    writexl
+Config/roxygen2/version: 8.0.0

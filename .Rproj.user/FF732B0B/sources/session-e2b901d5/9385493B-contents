@@ -1,0 +1,166 @@
+# ==============================================================================
+# 1. build_inventory()
+# ==============================================================================
+
+#' Build a File Inventory and Detect Duplicates
+#'
+#' @description 
+#' Scans a specified directory recursively to extract metadata for all files.
+#' It also calculates the MD5 hash for each file to identify exact duplicates, 
+#' ignoring directory structures and focusing solely on file content.
+#'
+#' @param target_dir A character string specifying the directory path to scan. 
+#'        Defaults to the current working directory (".").
+#'
+#' @return A `tibble` (data frame) containing file paths, sizes, modification times, 
+#'         file extensions, MD5 hashes, and a duplicate group identifier.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' inventory <- build_inventory("C:/my_project/data")
+#' head(inventory)
+#' }
+build_inventory <- function(target_dir = ".") {
+  
+  # 1. Extract raw file information using 'fs' package
+  file_info <- fs::dir_info(path = target_dir, all = TRUE, recurse = TRUE) |>
+    dplyr::filter(type == "file") |> # Exclude directories
+    dplyr::mutate(
+      file_name = fs::path_file(path),
+      folder_path = fs::path_dir(path),
+      extension = fs::path_ext(path)
+    ) |>
+    dplyr::select(path, folder_path, file_name, extension, size, modification_time)
+  
+  # 2. Calculate MD5 hash to detect true duplicates based on file content
+  # Note: purrr::map_chr applies the digest function to each file path
+  hashed_files <- file_info |>
+    dplyr::mutate(
+      md5_hash = purrr::map_chr(path, ~digest::digest(., algo = "md5", file = TRUE))
+    )
+  
+  # 3. Group by hash to flag duplicates and assign group IDs
+  inventory_final <- hashed_files |>
+    dplyr::group_by(md5_hash) |>
+    dplyr::mutate(
+      is_duplicate = dplyr::n() > 1,
+      duplicate_group = dplyr::cur_group_id()
+    ) |>
+    dplyr::ungroup() |>
+    dplyr::arrange(extension, file_name)
+  
+  return(inventory_final)
+}
+
+
+# ==============================================================================
+# 2. scan_io()
+# ==============================================================================
+
+#' Scan an R Script for Data Import/Export Flows
+#'
+#' @description 
+#' Parses an R script line-by-line, ignores commented lines, and extracts 
+#' data I/O functions (e.g., `read.csv`, `write_csv`, `saveRDS`). 
+#' It isolates the exact file names being imported or exported using regex.
+#'
+#' @param file_path A character string specifying the path to the R script.
+#'
+#' @return A `tibble` containing the script name, I/O type (Import/Export), 
+#'         the extracted data file name, and the original code line. 
+#'         Returns `NULL` if no I/O operations are found.
+#' @export
+scan_io <- function(file_path) {
+  
+  # 1. Read the script as text lines and ignore warnings (e.g., missing EOF)
+  code_lines <- readLines(file_path, warn = FALSE)
+  
+  # 2. Remove lines that start with a comment (#) to prevent false positives
+  active_lines <- code_lines[!stringr::str_detect(stringr::str_trim(code_lines), "^#")]
+  
+  # 3. Define Regex patterns for common data I/O functions
+  import_pattern <- "read\\.csv|read_csv|read_excel|readRDS|fread|load\\("
+  export_pattern <- "write\\.csv|write_csv|write_xlsx|saveRDS|save\\(|ggsave"
+  
+  # Subset lines that match the patterns
+  imports <- stringr::str_subset(active_lines, import_pattern)
+  exports <- stringr::str_subset(active_lines, export_pattern)
+  
+  # Return NULL if the script does not read or write data
+  if (length(imports) == 0 && length(exports) == 0) return(NULL)
+  
+  # 4. Helper function: Extract exact strings inside quotes (" " or ' ')
+  extract_file_path <- function(lines) {
+    raw_strings <- stringr::str_extract(lines, "\"[^\"]+\"|'[^']+'")
+    clean_strings <- stringr::str_remove_all(raw_strings, "\"|'")
+    return(clean_strings)
+  }
+  
+  # 5. Assemble the final lineage data frame
+  lineage_df <- dplyr::tibble(
+    script_name = basename(file_path),
+    type = c(rep("Import", length(imports)), rep("Export", length(exports))),
+    data_file = extract_file_path(c(imports, exports)),
+    original_code = stringr::str_trim(c(imports, exports))
+  ) |> 
+    # If the file path is a variable (no quotes found), label it accordingly
+    dplyr::mutate(
+      data_file = dplyr::if_else(is.na(data_file), "[Variable Used]", data_file)
+    )
+  
+  return(lineage_df)
+}
+
+
+# ==============================================================================
+# 3. export_project_map()
+# ==============================================================================
+
+#' Export Project File Inventory and I/O Map to Excel
+#'
+#' @description 
+#' A high-level wrapper function that builds the file inventory, scans all 
+#' R scripts for data flows, and exports the results into a multi-sheet Excel file.
+#'
+#' @param target_dir Directory path to analyze. Defaults to current directory (".").
+#' @param output_excel Name of the output Excel file. Defaults to "Project_Map.xlsx".
+#'
+#' @return Invisible. Generates an Excel file in the working directory.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' export_project_map(target_dir = ".", output_excel = "My_Project_Report.xlsx")
+#' }
+export_project_map <- function(target_dir = ".", output_excel = "Project_Map.xlsx") {
+  
+  # 1. Generate the overall file inventory
+  message("Building file inventory... This may take a moment for large directories.")
+  inventory <- build_inventory(target_dir)
+  
+  # 2. Isolate R scripts for I/O scanning
+  r_scripts <- inventory |>
+    dplyr::filter(tolower(extension) == "r") |>
+    dplyr::pull(path)
+  
+  # 3. Scan all R scripts and combine the results
+  message("Scanning R scripts for Data I/O flows...")
+  if (length(r_scripts) > 0) {
+    io_map <- purrr::map_dfr(r_scripts, scan_io)
+  } else {
+    io_map <- dplyr::tibble(Message = "No R scripts found in the directory.")
+  }
+  
+  # 4. Export the generated tables to a multi-sheet Excel workbook
+  message(sprintf("Exporting results to: %s", output_excel))
+  writexl::write_xlsx(
+    list(
+      "File_Inventory" = inventory,
+      "Data_IO_Map" = io_map
+    ),
+    path = output_excel
+  )
+  
+  message("Export completed successfully!")
+}
