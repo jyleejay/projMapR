@@ -99,6 +99,11 @@ scan_io <- function(file_path) {
       import = "pd\\.read_|open\\(|\\.load\\(|np\\.load",
       export = "\\.to_csv|\\.to_excel|\\.to_pickle|\\.to_parquet|plt\\.savefig",
       comment = "^#"
+    ),
+    ipynb = list(
+      import = "pd\\.read_|open\\(|\\.load\\(|np\\.load",
+      export = "\\.to_csv|\\.to_excel|\\.to_pickle|\\.to_parquet|plt\\.savefig",
+      comment = "^#"
     )
   )
 
@@ -108,6 +113,15 @@ scan_io <- function(file_path) {
 
   # 3. Read and filter code
   code_lines <- readLines(file_path, warn = FALSE)
+
+  if (ext == "ipynb") {
+    nb_data <- jsonlite::fromJSON(file_path)
+    code_cells <- nb_data$cells[nb_data$cells$cell_type == "code", ]
+    code_lines <- unlist(code_cells$source)
+  } else {
+    code_lines <- readLines(file_path, warn = FALSE)
+  }
+
   # Remove commented lines and empty lines
   active_lines <- code_lines[
     !stringr::str_detect(stringr::str_trim(code_lines), target_pattern$comment) &
@@ -169,17 +183,17 @@ export_project_map <- function(target_dir = ".", output_excel = "Project_Map.xls
   message("Building file inventory... This may take a moment for large directories.")
   inventory <- build_inventory(target_dir)
 
-  # 2. Isolate R scripts for I/O scanning
-  r_scripts <- inventory |>
-    dplyr::filter(tolower(extension) == "r") |>
+  # 2. Isolate R, py, ipynb scripts for I/O scanning
+  scripts_to_scan <- inventory |>
+    dplyr::filter(tolower(extension) %in% c("r", "py", "ipynb")) |>
     dplyr::pull(path)
 
   # 3. Scan all R scripts and combine the results
   message("Scanning R scripts for Data I/O flows...")
-  if (length(r_scripts) > 0) {
-    io_map <- purrr::map_dfr(r_scripts, scan_io)
+  if (length(scripts_to_scan) > 0) {
+    io_map <- purrr::map_dfr(scripts_to_scan, scan_io)
   } else {
-    io_map <- dplyr::tibble(Message = "No R scripts found in the directory.")
+    io_map <- dplyr::tibble(Message = "No analysis scripts (R/py/ipynb) found.")
   }
 
   # 4. Export the generated tables to a multi-sheet Excel workbook
