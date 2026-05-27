@@ -1,4 +1,4 @@
-#projMapR <img src="man/figures/logo.png" align="right" height="139" alt="projMapR logo" />
+# projMapR <img src="man/figures/logo_final.png" align="right" height="139" alt="projMapR logo" />
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 
 **`projMapR`** is an R package designed to help data scientists organize, audit, and document their project directories. It automates the tedious task of listing files, identifying duplicates, and mapping the flow of data through R scripts and Python scripts.
