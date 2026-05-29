@@ -92,7 +92,7 @@ scan_io <- function(file_path) {
   patterns <- list(
     r = list(
       import = "read_parquet|read\\.csv|read_csv|read_excel|readRDS|fread|load\\(",
-      export = "write_parquet|write\\.csv|write_csv|write_xlsx|saveRDS|save\\(|ggsave",
+      export = "write_parquet|write\\.csv|write_csv|write_xlsx|saveRDS|save\\(|ggsave|topptx|graph2ppt|target\\s*=",
       comment = "^#"
     ),
     py = list(
@@ -136,9 +136,8 @@ scan_io <- function(file_path) {
 
   # 5. Helper function: Extract strings inside quotes
   extract_file_path <- function(lines) {
-    # Matches everything inside "..." or '...'
-    raw_strings <- stringr::str_extract(lines, "\"[^\"]+\"|'[^']+'")
-    clean_strings <- stringr::str_remove_all(raw_strings, "\"|'")
+    raw_strings <- stringr::str_extract(lines, "target\\s*=\\s*\"[^\"]+\"|target\\s*=\\s*'[^']+'|\"[^\"]+\"|'[^']+'")
+    clean_strings <- stringr::str_remove_all(raw_strings, "target\\s*=\\s*|\"|'")
     return(clean_strings)
   }
 
