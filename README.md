@@ -22,7 +22,7 @@ You can install the development version of `projMapR` from [GitHub](https://gith
 # install.packages("pak")
 pak::pak("jyleejay/projMapR")
 
-# install.packages("remotes")ca
+# install.packages("remotes")
 remotes::install_git("https://github.com/jyleejay/projMapR.git")
 ```
 
