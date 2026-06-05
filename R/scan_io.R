@@ -1,12 +1,11 @@
-#' Scan Scripts for Data Import/Export Flows (R and Python)
+#' Scan Scripts for Data Input and Output Lineage
 #'
 #' @description
-#' Parses script files line-by-line and extracts data I/O operations based on
-#' the file extension. Currently supports R (.R) and Python (.py, .ipynb).
+#' Parses an R, Python, or R Markdown script to trace data import and export
+#' flows, capturing clean filenames, absolute data paths, and file extensions.
 #'
-#' @param file_path Path to the script file.
-#' @return A tibble with script name, I/O type, data file, and original code.
-#'
+#' @param file_path Character. Path to the script file to be scanned.
+#' @return A tibble containing script metadata, data operations, and lineage details.
 #' @export
 scan_io <- function(file_path) {
 
@@ -79,6 +78,7 @@ scan_io <- function(file_path) {
     original_code = stringr::str_trim(c(imports, exports))
   ) |>
     dplyr::mutate(
+
       data_path = dplyr::case_when(
         data_file == "[Variable/Dynamic Path]" ~ NA_character_,
         fs::is_absolute_path(data_file) ~ as.character(data_file),
@@ -87,7 +87,26 @@ scan_io <- function(file_path) {
           normalizePath(combined_path, winslash = "/", mustWork = FALSE)
         }
       ),
+
+      is_dynamic = data_file == "[Variable/Dynamic Path]" |
+        stringr::str_detect(data_file, "Variable|Dynamic"),
+
+      data_file = dplyr::case_when(
+        is_dynamic ~ "[Variable/Dynamic Path]",
+        TRUE ~ as.character(fs::path_file(data_file))
+      ),
+
+      base_ext = tolower(tools::file_ext(data_file)),
+
+      data_ext = dplyr::case_when(
+        data_file == "[Variable/Dynamic Path]" ~ NA_character_,
+        stringr::str_detect(original_code, "readRDS|saveRDS") ~ "rds",
+        stringr::str_detect(original_code, "read_parquet|write_parquet") ~ "parquet",
+        stringr::str_detect(original_code, "read_excel|write_xlsx") & !(base_ext %in% c("xlsx", "xls")) ~ "xlsx",
+        TRUE ~ base_ext),
+
       data_file = dplyr::if_else(is.na(data_file), "[Variable/Dynamic Path]", data_file),
+      data_path = dplyr::if_else(data_file == "[Variable/Dynamic Path]", NA_character_, data_path),
       data_ext = dplyr::if_else(data_file == "[Variable/Dynamic Path]", NA_character_, data_ext)
     ) |>
     dplyr::select(script_name, script_path, type, data_file, data_path, data_ext, original_code)

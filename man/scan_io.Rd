@@ -2,17 +2,17 @@
 % Please edit documentation in R/scan_io.R
 \name{scan_io}
 \alias{scan_io}
-\title{Scan Scripts for Data Import/Export Flows (R and Python)}
+\title{Scan Scripts for Data Input and Output Lineage}
 \usage{
 scan_io(file_path)
 }
 \arguments{
-\item{file_path}{Path to the script file.}
+\item{file_path}{Character. Path to the script file to be scanned.}
 }
 \value{
-A tibble with script name, I/O type, data file, and original code.
+A tibble containing script metadata, data operations, and lineage details.
 }
 \description{
-Parses script files line-by-line and extracts data I/O operations based on
-the file extension. Currently supports R (.R) and Python (.py, .ipynb).
+Parses an R, Python, or R Markdown script to trace data import and export
+flows, capturing clean filenames, absolute data paths, and file extensions.
 }

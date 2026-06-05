@@ -9,9 +9,9 @@ build_inventory(target_dir = ".", include_ext = NULL, min_size = NULL)
 \arguments{
 \item{target_dir}{Character. Path to the project directory.}
 
-\item{include_ext}{Character vector. Specific extensions to include (e.g., c("R", "csv")). Default is NULL (all extensions).}
+\item{include_ext}{Character vector. Specific extensions to include (e.g., c("R", "py")). Default is NULL (all extensions).}
 
-\item{min_size}{Numeric/Character. Minimum file size to include (e.g., 1024 or "100KB"). Default is NULL.}
+\item{min_size}{Numeric/Character. Minimum file size to include (as numeric, e.g., 1024 or 532). Default is NULL.}
 }
 \description{
 Build Project File Inventory with Custom Filters
