@@ -1,7 +1,7 @@
 Package: projMapR
 Type: Package
 Title: Map Project File Structures and Data Lineage.
-Version: 0.1.3
+Version: 0.1.4
 Author: [Jeongyoon Lee] <jeongyoonlee.jay@gmail.com>
 Maintainer: [Jeongyoon Lee] <jeongyoonlee.jay@gmail.com>
 Description: A lightweight utility designed to audit and document complex data projects.
