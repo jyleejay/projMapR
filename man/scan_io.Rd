@@ -13,6 +13,6 @@ scan_io(file_path)
 A tibble containing script metadata, data operations, and lineage details.
 }
 \description{
-Parses an R, Python, or R Markdown script to trace data import and export
+Parses an R, Python, or Stata script to trace data import and export
 flows, capturing clean filenames, absolute data paths, and file extensions.
 }
