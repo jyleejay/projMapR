@@ -4,7 +4,15 @@
 \alias{build_inventory}
 \title{Build Project File Inventory with Custom Filters}
 \usage{
-build_inventory(target_dir = ".", include_ext = NULL, min_size = NULL)
+build_inventory(
+  target_dir = ".",
+  include_ext = NULL,
+  min_size = NULL,
+  ignore_dirs = c(".git", "renv", ".Rproj.user", ".venv", "__pycache__",
+    ".ipynb_checkpoints"),
+  ignore_files = c("renv.lock", "Thumbs.db", ".DS_Store", ".gitignore", ".Rhistory"),
+  ignore_ext = c("css", "bib")
+)
 }
 \arguments{
 \item{target_dir}{Character. Path to the project directory.}
@@ -12,6 +20,13 @@ build_inventory(target_dir = ".", include_ext = NULL, min_size = NULL)
 \item{include_ext}{Character vector. Specific extensions to include (e.g., c("R", "py")). Default is NULL (all extensions).}
 
 \item{min_size}{Numeric/Character. Minimum file size to include (as numeric, e.g., 1024 or 532). Default is NULL.}
+
+\item{ignore_dirs}{Character vector. Directories to exclude from the scan (e.g., .git, renv).}
+
+\item{ignore_files}{Character vector. Files to exclude from the scan (e.g., .git, renv).}
+}
+\value{
+A structured tibble containing comprehensive file metadata.
 }
 \description{
 Build Project File Inventory with Custom Filters

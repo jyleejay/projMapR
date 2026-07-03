@@ -4,12 +4,29 @@
 \alias{export_project_map}
 \title{Export Project File Inventory and I/O Map to Excel}
 \usage{
-export_project_map(target_dir = ".", output_excel = "Project_Map.xlsx")
+export_project_map(
+  target_dir = ".",
+  output_excel = "Project_Map.xlsx",
+  include_ext = NULL,
+  min_size = NULL,
+  ignore_dirs = c(".git", "renv", ".Rproj.user", ".venv", "__pycache__",
+    ".ipynb_checkpoints"),
+  ignore_files = c("renv.lock", "Thumbs.db", ".DS_Store", ".gitignore", ".Rhistory"),
+  ignore_ext = c("css", "bib")
+)
 }
 \arguments{
 \item{target_dir}{Directory path to analyze. Defaults to current directory (".").}
 
 \item{output_excel}{Name of the output Excel file. Defaults to "Project_Map.xlsx".}
+
+\item{include_ext}{Character vector. Specific extensions to include (e.g., c("R", "py")). Default is NULL (all extensions).}
+
+\item{min_size}{Numeric/Character. Minimum file size to include (as numeric, e.g., 1024 or 532). Default is NULL.}
+
+\item{ignore_dirs}{Character vector. Directories to exclude from the scan (e.g., .git, renv).}
+
+\item{ignore_files}{Character vector. Files to exclude from the scan (e.g., .git, renv).}
 }
 \value{
 Invisible. Generates an Excel file in the working directory.

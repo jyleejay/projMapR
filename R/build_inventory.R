@@ -3,8 +3,14 @@
 #' @param target_dir Character. Path to the project directory.
 #' @param include_ext Character vector. Specific extensions to include (e.g., c("R", "py")). Default is NULL (all extensions).
 #' @param min_size Numeric/Character. Minimum file size to include (as numeric, e.g., 1024 or 532). Default is NULL.
+#' @param ignore_dirs Character vector. Directories to exclude from the scan (e.g., .git, renv).
+#' @param ignore_files Character vector. Files to exclude from the scan (e.g., .git, renv).
+#' @return A structured tibble containing comprehensive file metadata.
 #' @export
-build_inventory <- function(target_dir = ".", include_ext = NULL, min_size = NULL) {
+build_inventory <- function(target_dir = ".", include_ext = NULL, min_size = NULL,
+                            ignore_dirs = c(".git", "renv", ".Rproj.user", ".venv", "__pycache__", ".ipynb_checkpoints"),
+                            ignore_files = c("renv.lock", "Thumbs.db", ".DS_Store", ".gitignore", ".Rhistory"),
+                            ignore_ext = c("css", "bib")) {
 
   # Use purrr::map_dfr to iterate safely over multiple directories and row-bind the results automatically
   inventory_list <- purrr::map_dfr(target_dir, function(single_dir) {
@@ -19,6 +25,27 @@ build_inventory <- function(target_dir = ".", include_ext = NULL, min_size = NUL
     }
 
     info <- fs::dir_info(abs_target, recurse = TRUE, all = TRUE)
+
+    # pre-filtering condition: ignore_dirs
+    if (!is.null(ignore_dirs) && length(ignore_dirs) > 0) {
+      safe_dirs <- gsub("\\.", "\\\\.", ignore_dirs)
+
+      ignore_pattern <- paste0("/(", paste(safe_dirs, collapse = "|"), ")(/|$)")
+
+      info <- info |>
+        dplyr::filter(!stringr::str_detect(path, ignore_pattern))
+    }
+
+    info <- info |>
+      dplyr::filter(!stringr::str_detect(path, "/[^/]+_(files|cache)(/|$)"))
+
+    # pre-filtering condition: ignore_files, ignore_ext
+    if (!is.null(ignore_files)) {
+      info <- info |> dplyr::filter(!as.character(fs::path_file(path)) %in% ignore_files)
+    }
+    if (!is.null(ignore_ext)) {
+      info <- info |> dplyr::filter(!tolower(fs::path_ext(path)) %in% tolower(ignore_ext))
+    }
 
     # 1-1. Extension filtering
     if (!is.null(include_ext)) {

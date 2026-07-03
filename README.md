@@ -35,10 +35,10 @@ Watch `projMapR` scan directories and parse scripts, then instantly preview the 
 
 ## Key Features in the Latest Release
 
--   **Comprehensive Multi-Language Parsing:** `scan_io()` now seamlessly tracks data lineage across **R (`.R`, `.Rmd`)**, **Python (`.py`)**, **Jupyter Notebooks (`.ipynb`)**, and **Stata (`.do`)** scripts.
--   **Context-Based Extension Inference:** Intelligently corrects versioned or extensionless files (e.g., `dataset_v0.1` saved via `saveRDS()` is accurately mapped to `rds`).
--   **Robust Path Cleansing:** Automatically handles absolute network paths (NAS), isolates pure file titles, and eliminates trailing `/NA` ghost paths from dynamic script loops.
--   **Excel-Friendly Sizing:** Logs file sizes as both raw numeric bytes (`size_bytes`) for spreadsheet filtering/sorting and human-scannable strings (`size_readable`).
+- **Comprehensive Multi-Language Parsing:** `scan_io()` now seamlessly tracks data lineage across **R (`.R`, `.Rmd`)**, **Python (`.py`)**, **Jupyter Notebooks (`.ipynb`)**, and **Stata (`.do`)** scripts.
+- **Granular Project Filtering:** Automatically detects and excludes system clutter (e.g., `.git`, `renv`), irrelevant extensions (`.css`, `.bib`), and R Markdown/Quarto generated output folders (`_files`, `_cache`). Fully customizable via `ignore_dirs`, `ignore_files`, and `ignore_ext` parameters.
+- **Context-Based Extension Inference:** Intelligently corrects versioned or extensionless files (e.g., `dataset_v0.1` saved via `saveRDS()` is accurately mapped to `rds`).
+- **Excel-Friendly Sizing:** Logs file sizes as both raw numeric bytes for spreadsheet sorting and human-scannable strings.
 
 ------------------------------------------------------------------------
 
@@ -100,6 +100,18 @@ compare_files("scripts/analysis_v1.R", "Z:/NAS_backup/scripts/analysis_v1.R", me
 compare_files("data/raw_data.rds", "data/backup_data.rds", method = "hash")
 ```
 
+**4. Generate a unified Excel report auditing multiple directories**
+
+``` r
+# Note: System folders (.git, renv), Rmd/Quarto caches, and irrelevant files 
+# are automatically excluded to keep the report clean and lightweight. 
+# You can fully customize these filters using the ignore_* parameters.
+export_project_map(
+    target_dir = c("D:/Project_A", "E:/Backup/Project_A"), 
+    output_excel = "ProjectA_Audit_Report.xlsx",
+    ignore_ext = c("css", "bib", "html", "txt")
+  )
+```
 ------------------------------------------------------------------------
 
 ## Key Functions
