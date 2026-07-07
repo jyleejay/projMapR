@@ -15,7 +15,9 @@ When research projects scale, file structures often degrade into messy data silo
 
 ## Quick Demo & Excel Outputs
 
-Watch `projMapR` scan directories and parse scripts, then instantly preview the multi-sheet, audit-ready Excel workbooks generated with a single command. \### 1. Package Demonstration (GIF)
+Watch `projMapR` scan directories and parse scripts, then instantly preview the multi-sheet, audit-ready Excel workbooks generated with a single command.
+
+### 1. Package Demonstration (GIF)
 
 <img src="man/figures/demo.gif" alt="projMapR Demo Quick Run"/>
 
