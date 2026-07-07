@@ -8,7 +8,8 @@
 #' @return A structured tibble containing comprehensive file metadata.
 #' @export
 build_inventory <- function(target_dir = ".", include_ext = NULL, min_size = NULL,
-                            ignore_dirs = c(".git", "renv", ".Rproj.user", ".venv", "__pycache__", ".ipynb_checkpoints"),
+                            ignore_dirs = c(".git", "renv", ".Rproj.user", ".venv", "__pycache__", ".ipynb_checkpoints",
+                                            "$RECYCLE.BIN", "Recovery", "System Volume Information"),
                             ignore_files = c("renv.lock", "Thumbs.db", ".DS_Store", ".gitignore", ".Rhistory"),
                             ignore_ext = c("css", "bib")) {
 
@@ -24,17 +25,25 @@ build_inventory <- function(target_dir = ".", include_ext = NULL, min_size = NUL
       return(NULL)
     }
 
-    info <- fs::dir_info(abs_target, recurse = TRUE, all = TRUE)
+    info <- fs::dir_info(abs_target, recurse = TRUE, all = TRUE, fail = FALSE)
 
     # pre-filtering condition: ignore_dirs
     if (!is.null(ignore_dirs) && length(ignore_dirs) > 0) {
-      safe_dirs <- gsub("\\.", "\\\\.", ignore_dirs)
 
+      safe_dirs <- gsub("([.$])", "\\\\\\1", ignore_dirs)
       ignore_pattern <- paste0("/(", paste(safe_dirs, collapse = "|"), ")(/|$)")
-
       info <- info |>
-        dplyr::filter(!stringr::str_detect(path, ignore_pattern))
+        dplyr::filter(!stringr::str_detect(path, stringr::regex(ignore_pattern, ignore_case = TRUE)))
     }
+
+    # if (!is.null(ignore_dirs) && length(ignore_dirs) > 0) {
+    #   safe_dirs <- gsub("\\.", "\\\\.", ignore_dirs)
+    #
+    #   ignore_pattern <- paste0("/(", paste(safe_dirs, collapse = "|"), ")(/|$)")
+    #
+    #   info <- info |>
+    #     dplyr::filter(!stringr::str_detect(path, ignore_pattern))
+    # }
 
     info <- info |>
       dplyr::filter(!stringr::str_detect(path, "/[^/]+_(files|cache)(/|$)"))

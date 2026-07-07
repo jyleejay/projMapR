@@ -36,7 +36,7 @@ Watch `projMapR` scan directories and parse scripts, then instantly preview the 
 ## Key Features in the Latest Release
 
 - **Comprehensive Multi-Language Parsing:** `scan_io()` now seamlessly tracks data lineage across **R (`.R`, `.Rmd`)**, **Python (`.py`)**, **Jupyter Notebooks (`.ipynb`)**, and **Stata (`.do`)** scripts.
-- **Granular Project Filtering:** Automatically detects and excludes system clutter (e.g., `.git`, `renv`), irrelevant extensions (`.css`, `.bib`), and R Markdown/Quarto generated output folders (`_files`, `_cache`). Fully customizable via `ignore_dirs`, `ignore_files`, and `ignore_ext` parameters.
+- **Granular & OS-Level Project Filtering:** Automatically detects and excludes system clutter (e.g., `.git`, `renv`), R Markdown/Quarto generated caches (`_files`, `_cache`), and irrelevant extensions. It also features robust, case-insensitive regex filtering to safely bypass protected Windows OS directories (e.g., `$RECYCLE.BIN`, `System Volume Information`, `Recovery`) without causing permission crashes.
 - **Context-Based Extension Inference:** Intelligently corrects versioned or extensionless files (e.g., `dataset_v0.1` saved via `saveRDS()` is accurately mapped to `rds`).
 - **Excel-Friendly Sizing:** Logs file sizes as both raw numeric bytes for spreadsheet sorting and human-scannable strings.
 
@@ -103,12 +103,14 @@ compare_files("data/raw_data.rds", "data/backup_data.rds", method = "hash")
 **4. Generate a unified Excel report auditing multiple directories**
 
 ``` r
-# Note: System folders (.git, renv), Rmd/Quarto caches, and irrelevant files 
-# are automatically excluded to keep the report clean and lightweight. 
-# You can fully customize these filters using the ignore_* parameters.
-export_project_map(
-    target_dir = c("D:/Project_A", "E:/Backup/Project_A"), 
-    output_excel = "ProjectA_Audit_Report.xlsx",
+# Note: System folders (.git, renv), Rmd caches, irrelevant files, and protected
+# OS directories (like $RECYCLE.BIN) are automatically safely excluded.
+# Even if you scan an entire drive (e.g., "D:/"), the package will bypass
+# permission errors seamlessly.
+suppressWarnings(
+  export_project_map(
+    target_dir = c("D:/Project/Data", "E:/Backup/Data"),
+    output_excel = "Project_Audit_Report.xlsx",
     ignore_ext = c("css", "bib", "html", "txt")
   )
 ```

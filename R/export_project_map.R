@@ -23,7 +23,8 @@ export_project_map <- function(target_dir = ".",
                                output_excel = "Project_Map.xlsx",
                                include_ext = NULL,
                                min_size = NULL,
-                               ignore_dirs = c(".git", "renv", ".Rproj.user", ".venv", "__pycache__", ".ipynb_checkpoints"),
+                               ignore_dirs = c(".git", "renv", ".Rproj.user", ".venv", "__pycache__", ".ipynb_checkpoints",
+                                               "$RECYCLE.BIN", "Recovery", "System Volume Information"),
                                ignore_files = c("renv.lock", "Thumbs.db", ".DS_Store", ".gitignore", ".Rhistory"),
                                ignore_ext = c("css", "bib")) {
 
