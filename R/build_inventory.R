@@ -36,15 +36,6 @@ build_inventory <- function(target_dir = ".", include_ext = NULL, min_size = NUL
         dplyr::filter(!stringr::str_detect(path, stringr::regex(ignore_pattern, ignore_case = TRUE)))
     }
 
-    # if (!is.null(ignore_dirs) && length(ignore_dirs) > 0) {
-    #   safe_dirs <- gsub("\\.", "\\\\.", ignore_dirs)
-    #
-    #   ignore_pattern <- paste0("/(", paste(safe_dirs, collapse = "|"), ")(/|$)")
-    #
-    #   info <- info |>
-    #     dplyr::filter(!stringr::str_detect(path, ignore_pattern))
-    # }
-
     info <- info |>
       dplyr::filter(!stringr::str_detect(path, "/[^/]+_(files|cache)(/|$)"))
 
